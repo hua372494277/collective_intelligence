@@ -27,15 +27,13 @@ class Recommendation(object):
             raise Exception("So far, there are 2 similarity calculation methods: sim_distance and sim_pearson")
 
     def topMatches(self, item_id, num = 5):
-        # avoid lots of data would cost much memory
-        min_similarity
-        
+        # When there are millions lots of data would cost much memory        
         scores = [ (self.similarity_between_2_items(item_id, another_id), another_id)  \
-                                                for another_id in self.items_data if another_id != item_id])
+                                                for another_id in self.items_data if another_id != item_id]
 
         scores.sort()
         scores.reverse()
-        return scores[0:n]
+        return scores[0:num]
 
 
 if __name__ == '__main__':
@@ -57,5 +55,7 @@ if __name__ == '__main__':
     print recommend.similarity_between_2_items('Lisa Rose', 'Gene Seymour')
 
 
-    recommend.set_similarity_calculator("sim_distance")
+    recommend.set_similarity_calculator("sim_pearson")
+
+    print recommend.topMatches('Toby', num = 3)
 
