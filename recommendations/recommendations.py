@@ -11,7 +11,7 @@ class Recommendation(object):
         self.items_data = items_data
 
 
-    def similarity_between_2_items(self, item_id_1, item_id_2):
+    def cal_sim_between_2_items(self, item_id_1, item_id_2):
         if item_id_1 not in self.items_data or item_id_2 not in self.items_data:
             raise Exception(str(item_id_1) + ' or ' + str(item_id_2) + ' is not existed in data')
 
@@ -28,12 +28,37 @@ class Recommendation(object):
 
     def topMatches(self, item_id, num = 5):
         # When there are millions lots of data would cost much memory        
-        scores = [ (self.similarity_between_2_items(item_id, another_id), another_id)  \
+        scores = [ (self.cal_sim_between_2_items(item_id, another_id), another_id)  \
                                                 for another_id in self.items_data if another_id != item_id]
 
         scores.sort()
         scores.reverse()
         return scores[0:num]
+
+    def getRecommendations(self, item_id):
+        totals = {}
+        sim_sums = {}
+
+        for other_id in self.items_data:
+            if other_id == item_id: continue
+
+            sim = self.cal_sim_between_2_items(item_id, other_id)
+
+            # Ignore the one of similarity less than 0
+            if sim <= 0: continue
+
+            for element in self.items_data[other_id]:
+                if element not in self.items_data[item_id] or self.items_data[item_id] == 0:
+                    totals.setdefault(element, 0)
+                    totals[element] += sim * self.items_data[other_id][element]
+
+                    sim_sums.setdefault(element, 0)
+                    sim_sums[element] += sim
+
+        rankings = [(total/sim_sums[element], element)  for element, total in totals.items()]
+
+
+
 
 
 if __name__ == '__main__':
@@ -47,12 +72,12 @@ if __name__ == '__main__':
     print sim.calculate_similarity(person1, person2)
 
     recommend = Recommendation(critics)
-    print recommend.similarity_between_2_items('Lisa Rose', 'Gene Seymour')
+    print recommend.cal_sim_between_2_items('Lisa Rose', 'Gene Seymour')
 
     sim = SimDistance()
     print sim.calculate_similarity(person1, person2)
     recommend.set_similarity_calculator("Sim_distance")
-    print recommend.similarity_between_2_items('Lisa Rose', 'Gene Seymour')
+    print recommend.cal_sim_between_2_items('Lisa Rose', 'Gene Seymour')
 
 
     recommend.set_similarity_calculator("sim_pearson")
