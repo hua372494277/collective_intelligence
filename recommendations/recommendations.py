@@ -56,8 +56,22 @@ class Recommendation(object):
                     sim_sums[element] += sim
 
         rankings = [(total/sim_sums[element], element)  for element, total in totals.items()]
+        rankings.sort()
+        rankings.reverse()
 
+        return rankings
 
+    
+
+def transformData(prefs):
+    result = {}
+
+    for item in prefs:
+        for element in prefs[item]:
+            result.setdefault(element, {})
+            result[element][item]= prefs[item][element]
+
+    return result
 
 
 
@@ -82,5 +96,22 @@ if __name__ == '__main__':
 
     recommend.set_similarity_calculator("sim_pearson")
 
-    print recommend.topMatches('Toby', num = 3)
+    print recommend.topMatches('Toby', num = 5)
 
+    print recommend.getRecommendations('Toby')
+
+    recommend.set_similarity_calculator("sim_distance")
+    print recommend.getRecommendations('Toby')
+
+    print "------------------"
+    recommend = Recommendation( transformData(recommend.items_data))
+
+    print recommend.topMatches('Superman Returns')
+    recommend.set_similarity_calculator("sim_pearson")
+    print recommend.getRecommendations('Just My Luck')
+    print "similarity between 2 movies"
+    print recommend.cal_sim_between_2_items("Snakes on a Plane", "Lady in the Water")
+
+    print "---------------------"
+    print "recommend some commenters"
+    print recommend.getRecommendations('Just My Luck')
