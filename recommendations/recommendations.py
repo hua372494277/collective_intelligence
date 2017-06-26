@@ -3,12 +3,13 @@ from critics_movies import critics
 from similarity import Similarity
 from sim_distance import SimDistance
 from sim_pearson import SimPearson
+from sim_tanimoto import SimTanimoto
 
 class Recommendation(object):
     def __init__(self, items_data, similarity_method = "sim_pearson"):
         self.similarity_calculator = Similarity()
         self.set_similarity_calculator(similarity_method)        
-        self.items_data = items_data
+        self.items_data = items_data      
 
 
     def cal_sim_between_2_items(self, item_id_1, item_id_2):
@@ -23,6 +24,8 @@ class Recommendation(object):
             self.similarity_calculator = SimPearson()
         elif similarity_method.lower() == "sim_distance":
             self.similarity_calculator = SimDistance()
+        elif similarity_method.lower() == "sim_tanimoto":
+            self.similarity_calculator = SimTanimoto()
         else:
             raise Exception("So far, there are 2 similarity calculation methods: sim_distance and sim_pearson")
 
@@ -61,9 +64,45 @@ class Recommendation(object):
 
         return rankings
 
-    
+    def update_sim_elememts(self, num = 10):
+        result = {}
 
-def transformData(prefs):
+        c = 0
+        for item in self.items_data:
+            c += 1
+            if c%100 == 0: print "%d / %d" % (c, len(self.items_data))
+            scores = self.topMatches(item, num = num)
+            result[item] = scores
+
+        self.elements_match = result
+        return result
+    
+    def getRecommendedElements(self, prefs, item_id):        
+        itemRatings = prefs[item_id]
+        scores = {}
+        totalSim = {}
+
+        for (item, rating) in itemRatings.items():
+            for (similarity, element) in self.elements_match[item]:
+                if element in itemRatings: continue
+
+                scores.setdefault(element, 0)
+                scores[element] += similarity * rating
+
+                totalSim.setdefault(element, 0)
+                totalSim[element] += similarity
+
+            try:
+                rankings = [ (score/totalSim[item], item) for item, score in scores.items()]
+            except ZeroDivisionError:
+                print item
+
+        rankings.sort()
+        rankings.reverse()
+        return rankings
+
+    
+def transform_data(prefs):
     result = {}
 
     for item in prefs:
@@ -75,43 +114,31 @@ def transformData(prefs):
 
 
 
+
 if __name__ == '__main__':
-    person1 = critics['Lisa Rose']
-    person2 = critics['Gene Seymour']
-
-    print person1
-    print person2 
-
-    sim = SimPearson()
-    print sim.calculate_similarity(person1, person2)
 
     recommend = Recommendation(critics)
-    print recommend.cal_sim_between_2_items('Lisa Rose', 'Gene Seymour')
+    recommend_elements = Recommendation(transform_data(recommend.items_data))
+    print recommend_elements.items_data
 
-    sim = SimDistance()
-    print sim.calculate_similarity(person1, person2)
-    recommend.set_similarity_calculator("Sim_distance")
-    print recommend.cal_sim_between_2_items('Lisa Rose', 'Gene Seymour')
+    print recommend_elements.topMatches('Superman Returns')
+    recommend_elements.set_similarity_calculator("sim_distance")
 
-
-    recommend.set_similarity_calculator("sim_pearson")
-
-    print recommend.topMatches('Toby', num = 5)
-
-    print recommend.getRecommendations('Toby')
-
-    recommend.set_similarity_calculator("sim_distance")
-    print recommend.getRecommendations('Toby')
-
-    print "------------------"
-    recommend = Recommendation( transformData(recommend.items_data))
-
-    print recommend.topMatches('Superman Returns')
-    recommend.set_similarity_calculator("sim_pearson")
-    print recommend.getRecommendations('Just My Luck')
+    print recommend_elements.getRecommendations('Just My Luck')
     print "similarity between 2 movies"
-    print recommend.cal_sim_between_2_items("Snakes on a Plane", "Lady in the Water")
+    print recommend_elements.cal_sim_between_2_items("Snakes on a Plane", "Lady in the Water")
 
     print "---------------------"
     print "recommend some commenters"
-    print recommend.getRecommendations('Just My Luck')
+    print recommend_elements.getRecommendations('Just My Luck')
+
+    print "---------------------"
+    elementMatch = recommend_elements.update_sim_elememts()
+
+    print recommend_elements.getRecommendedElements(critics, 'Toby')
+
+    print "------Tanimoto Similarity -- "
+    tanimoto = SimTanimoto()
+    print critics['Lisa Rose']
+    print critics['Toby']
+    print tanimoto.calculate_similarity(critics['Lisa Rose'], critics['Toby'])
