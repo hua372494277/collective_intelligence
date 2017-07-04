@@ -51,3 +51,21 @@ if __name__ == '__main__':
     elapsed = (time.clock() - start)
     print elapsed
 
+    rec_base_item.features_match["Brother's Kiss, A (1997)"]
+
+    rec_base_item.get_recommended_items("87")
+
+    for (feature, rating) in itemRating.items():
+        for (similarity, feature_1) in rec_base_item.features_match[feature]:
+            if feature_1 in itemRating: continue
+            scores.setdefault(feature_1, 0)
+            scores[feature_1] += similarity * rating
+            totalSim.setdefault(feature_1, 0)
+            totalSim[feature_1] += similarity
+
+
+    for user in rec_base_item.recommend_based_item.items_data.keys():
+        result = rec_base_item.get_recommended_items(user)
+        if len(result) > 1:
+            print user, result
+
