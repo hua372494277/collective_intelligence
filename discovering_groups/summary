@@ -1,0 +1,35 @@
+Python library： feedparser
+几乎所有的博客都可以在线阅读，或者通过RSS订阅源进行阅读。RSS订阅源是一个包含博客及其所有文章条目信息的简单的XML文档。
+Universal Feed Parser 可以解析任何RSS或Atom订阅源中的标题，链接和文章的内容。
+
+re Regular Expression Objects
+re.compile(pattern, flags=0)
+Compile a regular expression pattern into a regular expression object, which can be used for matching using its match() and search() methods, described below.
+
+regexObj = re.compile(r'.......')
+regex.match(....)
+regex.sub(....)
+regex.search(....)
+
+下面这个函数在提取博客数据时，用来将HTML中的标签去掉
+r'<[^>]+>'
+当^出现在[]中时，表示除了>其他任何符号
+def getwords(html):
+    # Remove all the HTML tags
+    txt = re.compile(r'<[^>]+>').sub('', html)
+
+    # Split words by all non-alpha characters
+    words = re.compile(r'[^A-Z^a-z]+').split(txt)
+
+    # Convert to lowercase
+    return [word.lower() for word in words if word != '']
+
+split examples
+>>> re.split('\W+', 'Words, words, words.')
+['Words', 'words', 'words', '']
+>>> re.split('(\W+)', 'Words, words, words.')
+['Words', ', ', 'words', ', ', 'words', '.', '']
+>>> re.split('\W+', 'Words, words, words.', 1)
+['Words', 'words, words.']
+>>> re.split('[a-f]+', '0a3B9', flags=re.IGNORECASE)
+['0', '3', '9']
